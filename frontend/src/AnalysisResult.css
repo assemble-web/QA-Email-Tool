@@ -1,0 +1,301 @@
+/* AnalysisResult.css */
+
+/* Fondo y fuente */
+body,
+.analysis-root {
+    background: #181a1b;
+    color: #eaeaea;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Contenedor principal */
+.main-app-container {
+    width: 100vw;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Centra verticalmente el contenido */
+    justify-content: flex-start;
+    background: #181a1b;
+}
+
+.compare-root,
+.analysis-root {
+    width: 90vw;
+    min-width: 320px;
+    margin: 0 auto;
+    padding: 32px 0 64px 0;
+    box-sizing: border-box;
+}
+
+/* Títulos */
+h2,
+h3,
+h4 {
+    color: #fff;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+h2 {
+    font-size: 2rem;
+}
+
+h3 {
+    font-size: 1.2rem;
+}
+
+h4 {
+    font-size: 1rem;
+}
+
+/* Tablas */
+table {
+    width: 100%;
+    background: #232526;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px #0002;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+th,
+td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #222;
+    text-align: left;
+}
+
+th {
+    background: #232526;
+    color: #b5b5b5;
+    font-weight: 500;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+/* Listas */
+.analysis-root details ul {
+    padding-left: 3.2em !important;
+}
+
+.analysis-root details li {
+    margin-bottom: 0.5em;
+    line-height: 1.6;
+}
+
+/* Enlaces */
+a {
+    color: #6ec1e4;
+    text-decoration: underline;
+    word-break: break-all;
+}
+
+a:hover {
+    color: #fff;
+    background: #6ec1e4;
+    text-decoration: none;
+    border-radius: 3px;
+    padding: 0 2px;
+}
+
+/* Estados */
+.error {
+    color: #ff4d4f;
+    font-weight: bold;
+}
+
+.warn {
+    color: #b8860b;
+    font-weight: 500;
+}
+
+.ok {
+    color: #4caf50;
+    font-weight: 500;
+}
+
+.context {
+    color: #b5b5b5;
+    font-style: italic;
+    margin-left: 8px;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+
+    .analysis-root,
+    .compare-root {
+        width: 98vw;
+        max-width: 98vw;
+        padding: 16px 0 32px 0;
+    }
+
+    table,
+    th,
+    td {
+        font-size: 0.97em;
+    }
+
+    h2 {
+        font-size: 1.3rem;
+    }
+
+    h3 {
+        font-size: 1.05rem;
+    }
+}
+
+/* Bloques tipo dropdown apilados */
+.analysis-root details {
+    width: 100%;
+    max-width: 90vw;
+    margin: 0 auto 18px auto;
+    border: 2px solid #333;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px #0003;
+    overflow: hidden;
+    transition: box-shadow 0.2s, border-color 0.2s;
+    position: relative;
+    background: #232526;
+}
+
+.analysis-root details+details {
+    margin-top: 0;
+}
+
+.analysis-root details[open] {
+    box-shadow: 0 4px 16px #0005;
+    border-color: #6ec1e4;
+}
+
+.analysis-root summary {
+    cursor: pointer;
+    padding: 18px 24px;
+    border-bottom: 1px solid #333;
+    outline: none;
+    user-select: none;
+    list-style: none;
+    transition: background 0.2s, color 0.2s;
+}
+
+.analysis-root details[open] summary {
+    border-bottom: 1px solid #6ec1e4;
+}
+
+.analysis-root details>*:not(summary) {
+    padding: 18px 24px 12px 24px;
+}
+
+.analysis-root details>.veeva-token-list {
+    padding: 10px !important;
+}
+.analysis-root details>.veeva-token-preheader {
+    padding: 10px !important;
+}
+.analysis-root details>.tooltip-box {
+    padding: 10px !important;
+}
+
+/* Triángulo personalizado para el summary */
+.analysis-root summary::-webkit-details-marker {
+    display: none;
+}
+
+.analysis-root summary::before {
+    content: "▶";
+    display: inline-block;
+    margin-right: 10px;
+    transition: transform 0.2s;
+}
+
+.analysis-root details[open] summary::before {
+    transform: rotate(90deg);
+}
+
+/* Responsive para los bloques */
+@media (max-width: 700px) {
+    .analysis-root details {
+        max-width: 99vw;
+        padding: 0;
+    }
+
+    .analysis-root summary,
+    .analysis-root details>*:not(summary) {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+}
+
+/* Solo para la lista de tokens Veeva */
+.veeva-token-list {
+    border: 1px solid #aaa;
+    border-radius: 3px;
+    background: #232526;
+    margin: 18px;
+    padding: 0;
+    list-style: none;
+    max-width: 90vw;
+    /* Quita el padding izquierdo heredado */
+    padding-left: 0 !important;
+}
+
+.veeva-token-list li {
+    border-bottom: 1px solid #aaa;
+    padding: 8px 0;
+    background: transparent;
+    font-family: inherit;
+    font-size: 1rem;
+    color: inherit;
+    word-break: break-word;
+    /* Quita el margen inferior de las listas generales */
+    margin-bottom: 0;
+    /* Quita el padding izquierdo heredado */
+    padding-left: 0 !important;
+}
+
+.veeva-token-list li:last-child {
+    border-bottom: none;
+}
+
+.veeva-token-preheader {
+    border: 2px solid #6ec1e4;
+    background-color: #1e2a30;
+    border-radius: 3px;
+    margin: 18px 18px 0;
+    list-style: none;
+    color: #fff;
+    font-weight: 500;
+}
+
+.veeva-token-preheader li {
+    border: none;
+    padding: 8px 0 0;
+    border-bottom: 1px solid #aaa;
+}
+
+.tooltip-box p{
+    margin-left: 23px;
+}
+
+.analysis-root .tooltip-box {
+    font-size: 12px;
+    line-height: 19px;
+    margin-bottom: 0;
+    padding-bottom: 0px;
+}
+.tooltip-box li{
+    list-style-type: circle;
+}
+
+
+  

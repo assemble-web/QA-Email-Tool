@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "dictionary-en": "^4.0.0",
+    "html-entities": "^2.6.0",
+    "node-fetch": "^3.3.2",
+    "nspell": "^2.1.5",
+    "spellchecker": "^3.7.1"
+  }
+}

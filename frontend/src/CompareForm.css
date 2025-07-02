@@ -1,0 +1,115 @@
+.compare-root {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 48px 16px 0 16px;
+    background: transparent;
+}
+
+.result-root {
+    width: 90vw;
+    max-width: 90vw;
+    min-width: 320px;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+.compare-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.5em;
+    letter-spacing: 0.01em;
+}
+
+.compare-subtitle {
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: #b5b5b5;
+    margin-bottom: 2em;
+}
+
+.compare-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5em;
+    background: #232526;
+    padding: 2em 1.5em;
+    border-radius: 14px;
+    box-shadow: 0 2px 16px #0003;
+}
+
+.compare-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+}
+
+.compare-label {
+    color: #eaeaea;
+    font-size: 1.05em;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+}
+
+.compare-input[type="file"] {
+    margin-top: 0.5em;
+    background: #232526;
+    color: #eaeaea;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 0.5em;
+    font-size: 1em;
+    transition: border 0.2s;
+}
+
+.compare-input[type="file"]:focus {
+    border: 1.5px solid #6ec1e4;
+    outline: none;
+}
+
+.compare-btn {
+    background: linear-gradient(90deg, #6ec1e4 0%, #4f8cff 100%);
+    background-size: 200% 100%;
+    background-position: 0% 0%;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.9em 1.5em;
+    font-size: 1.1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-position 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-top: 1em;
+    box-shadow: 0 2px 8px #0002;
+}
+
+.compare-btn:hover:not(:disabled) {
+    background-position: 100% 0%;
+}
+
+.compare-btn:disabled {
+    background: #444;
+    color: #aaa;
+    cursor: not-allowed;
+}
+
+.compare-error {
+    color: #ff4d4f;
+    background: #232526;
+    border-radius: 6px;
+    padding: 0.7em 1em;
+    margin-top: 1.5em;
+    font-weight: 500;
+    text-align: center;
+}
+
+@media (max-width: 600px) {
+    .compare-root {
+        padding: 24px 4vw 0 4vw;
+    }
+
+    .compare-form {
+        padding: 1em 0.5em;
+    }
+}
