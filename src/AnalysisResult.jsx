@@ -1,15 +1,12 @@
 import React from "react";
 import "./AnalysisResult.css";
 
-const BACKEND_URL = "http://localhost:5000";
-
-
 // === Agrega la función aquí ===
 function decodeHTMLEntity(str) {
   if (!str) return "";
   return str
     .replace(/&reg;/g, "®")
-    .replace(/&rsquo;/g, "’")
+    .replace(/&rsquo;/g, "'")
     .replace(/&trade;/g, "™")
     .replace(/&bull;/g, "•")
     .replace(/&dagger;/g, "†")
@@ -27,7 +24,6 @@ export default function AnalysisResult({ analysisResult }) {
 
   const { analysis, diffImage, mismatchPixels } = analysisResult;
   console.log("🧪 customTextPreheaders:", analysis.customTextPreheaders);
-
 
   return (
     <div className="analysis-root">
