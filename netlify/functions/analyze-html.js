@@ -1,7 +1,7 @@
 // netlify/functions/analyze-html.js
-import { Buffer } from 'buffer';
-import * as cheerio from 'cheerio';
-import fetch from 'node-fetch';
+const { Buffer } = require('buffer');
+const cheerio = require('cheerio');
+const fetch = require('node-fetch');
 
 console.log("🟢 Function analyze-html loaded");
 
@@ -278,7 +278,7 @@ async function analyzeHTML(htmlContent) {
 	};
 }
 
-export async function handler(event, context) {
+exports.handler = async function(event, context) {
 	console.log("🟢 ===== FUNCTION INVOKED =====");
 	console.log("🟢 Method:", event.httpMethod);
 	console.log("🟢 Path:", event.path);
@@ -354,4 +354,4 @@ export async function handler(event, context) {
 			})
 		};
 	}
-}
+};

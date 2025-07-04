@@ -1,7 +1,6 @@
 {
   "name": "netlify-functions",
   "version": "1.0.0",
-  "type": "module",
   "dependencies": {
     "cheerio": "^1.0.0",
     "node-fetch": "^3.3.2"
