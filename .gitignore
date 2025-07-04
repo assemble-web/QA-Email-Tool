@@ -1,8 +1,6 @@
 # Dependencies
 node_modules/
 netlify/functions/node_modules/
-frontend/node_modules/
-backend/node_modules/
 
 # Package locks (opcional, pero recomendado para evitar conflictos)
 netlify/functions/package-lock.json
@@ -12,8 +10,8 @@ package-lock.json
 .netlify
 
 # Build outputs
-frontend/dist/
-frontend/build/
+dist/
+build/
 
 # Development files
 .DS_Store

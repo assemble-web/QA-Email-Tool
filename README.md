@@ -1,14 +1,12 @@
 # QA Email Tool
-Hecho en Colombia 🇨🇴 por Victor Camayo <br> Assemble Studio | Development Team
 
-## Descripción
 Una herramienta de Quality Assurance para emails que analiza contenido HTML en busca de errores comunes, problemas de accesibilidad y elementos que pueden afectar la entregabilidad de emails.
 
 ## 🚀 Características
 
 - **Análisis de imágenes**: Detecta imágenes sin texto alternativo
 - **Verificación de enlaces**: Identifica enlaces rotos o que no responden
-- **Revisión de ortografía**: Encuentra errores de ortografía en inglés
+- **Revisión de ortografía**: Encuentra posibles errores de ortografía (detección básica)
 - **Detección de texto repetido**: Identifica palabras duplicadas consecutivas
 - **Análisis de formato**: Revisa espacios dobles, caracteres invisibles
 - **Análisis de celdas**: Detecta celdas de tabla sin puntuación final
@@ -19,22 +17,22 @@ Una herramienta de Quality Assurance para emails que analiza contenido HTML en b
 
 ```
 QA-Email-Tool/
-├── frontend/                 # Aplicación React + Vite
-│   ├── src/
-│   │   ├── App.jsx           # Componente principal
-│   │   ├── CompareForm.jsx   # Formulario de comparación
-│   │   ├── FileUpload.jsx    # Componente de carga de archivos
-│   │   ├── AnalysisResult.jsx # Resultados del análisis
-│   │   └── ...
-│   ├── package.json
-│   ├── vite.config.js
+├── src/                      # Código fuente de React
+│   ├── App.jsx               # Componente principal
+│   ├── CompareForm.jsx       # Formulario de comparación
+│   ├── FileUpload.jsx        # Componente de carga de archivos
+│   ├── AnalysisResult.jsx    # Resultados del análisis
 │   └── ...
+├── public/                   # Archivos estáticos
 ├── netlify/
 │   └── functions/
-│       └── analyze-html.js   # Función serverless para análisis
-├── netlify.toml             # Configuración de Netlify
-├── package.json             # Dependencias del backend
-└── README.md
+│       ├── analyze-html.js   # Función serverless para análisis
+│       └── package.json      # Dependencias de las funciones
+├── dist/                     # Build de producción (generado)
+├── package.json              # Dependencias del frontend
+├── vite.config.js            # Configuración de Vite
+├── netlify.toml              # Configuración de Netlify
+└── index.html                # HTML principal
 ```
 
 ## 📋 Prerrequisitos
@@ -52,29 +50,24 @@ git clone <url-del-repositorio>
 cd QA-Email-Tool
 ```
 
-### 2. Instalar dependencias del backend
+### 2. Instalar dependencias
 
 ```bash
-# Instalar dependencias para las Netlify Functions
+# Instalar dependencias del frontend
 npm install
+
+# Instalar dependencias de las Netlify Functions
+cd netlify/functions
+npm install
+cd ../..
 ```
 
-### 3. Instalar dependencias del frontend
+### 3. Configurar variables de entorno (opcional)
+
+Si necesitas configurar variables de entorno, crea un archivo `.env` en el directorio raíz:
 
 ```bash
-# Navegar al directorio del frontend
-cd frontend
-
-# Instalar dependencias
-npm install
-```
-
-### 4. Configurar variables de entorno (opcional)
-
-Si necesitas configurar variables de entorno, crea un archivo `.env` en el directorio `frontend/`:
-
-```bash
-# frontend/.env
+# .env
 VITE_API_URL=http://localhost:8888/.netlify/functions
 ```
 
@@ -93,19 +86,15 @@ Esto iniciará:
 - El frontend en `http://localhost:8888`
 - Las Netlify Functions en `http://localhost:8888/.netlify/functions`
 
-### Opción 2: Desarrollo separado
+### Opción 2: Solo desarrollo del frontend
 
-Si prefieres ejecutar el frontend y backend por separado:
+Si solo quieres trabajar en el frontend:
 
 ```bash
-# Terminal 1: Ejecutar el frontend
-cd frontend
 npm run dev
-
-# Terminal 2: Ejecutar las Netlify Functions
-# (Requiere Netlify CLI instalado globalmente)
-netlify functions:serve
 ```
+
+El frontend estará disponible en `http://localhost:5173`
 
 ## 🚀 Deploy en Netlify
 
@@ -114,7 +103,7 @@ netlify functions:serve
 1. **Subir código a Git**:
    ```bash
    git add .
-   git commit -m "Initial commit"
+   git commit -m "Fix netlify functions and simplify structure"
    git push origin main
    ```
 
@@ -125,9 +114,9 @@ netlify functions:serve
    - Selecciona tu repositorio
 
 3. **Configurar settings de build**:
-   - **Base directory**: `frontend`
    - **Build command**: `npm run build`
    - **Publish directory**: `dist`
+   - **Functions directory**: `netlify/functions`
    
    > **Nota**: Estos settings ya están configurados en el archivo `netlify.toml`, por lo que Netlify los detectará automáticamente.
 
@@ -155,13 +144,12 @@ netlify deploy --prod
 
 1. **Construir el proyecto localmente**:
    ```bash
-   cd frontend
    npm run build
    ```
 
 2. **Subir manualmente**:
    - Ve a [Netlify](https://app.netlify.com)
-   - Arrastra y suelta la carpeta `frontend/dist` en el área de deploy
+   - Arrastra y suelta la carpeta `dist` en el área de deploy
 
 ## ⚙️ Configuración de Netlify
 
@@ -169,12 +157,11 @@ El archivo `netlify.toml` contiene toda la configuración necesaria:
 
 ```toml
 [build]
-  base = "frontend"
   publish = "dist"
   command = "npm run build"
 
 [functions]
-  directory = "../netlify/functions"
+  directory = "netlify/functions"
   
 [[redirects]]
   from = "/api/*"
@@ -192,18 +179,11 @@ Si necesitas configurar variables de entorno en producción:
 
 ## 📝 Scripts Disponibles
 
-### Frontend (`frontend/` directory)
-
 ```bash
-npm run dev      # Inicia servidor de desarrollo
+npm run dev      # Inicia servidor de desarrollo con Vite
 npm run build    # Construye para producción
 npm run preview  # Vista previa de la build
 npm run lint     # Ejecuta ESLint
-```
-
-### Raíz del proyecto
-
-```bash
 netlify dev      # Inicia todo el entorno local con Netlify Dev
 netlify deploy   # Deploy manual a Netlify
 ```
@@ -216,13 +196,18 @@ netlify deploy   # Deploy manual a Netlify
 # Asegúrate de tener Netlify CLI instalado
 npm install -g netlify-cli
 
+# Instala dependencias de las funciones
+cd netlify/functions
+npm install
+cd ../..
+
 # Ejecuta desde el directorio raíz
 netlify dev
 ```
 
 ### Error: "Build fails on Netlify"
 
-- Verifica que las dependencias estén correctamente listadas en `package.json`
+- Verifica que las dependencias estén correctamente listadas en ambos `package.json`
 - Revisa los logs de build en Netlify Dashboard
 - Asegúrate de que el `netlify.toml` esté en el directorio raíz
 
@@ -238,6 +223,34 @@ const headers = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS'
 };
 ```
+
+### Error: "Module not found"
+
+Si hay problemas con dependencias:
+
+```bash
+# Frontend
+rm -rf node_modules package-lock.json
+npm install
+
+# Functions
+cd netlify/functions
+rm -rf node_modules package-lock.json
+npm install
+cd ../..
+```
+
+### Error: "Top-level await not supported"
+
+Este error se ha solucionado eliminando las dependencias problemáticas y usando un enfoque más simple para el spell checking.
+
+## 🔍 Notas sobre el Spell Checking
+
+La herramienta ahora usa un sistema de detección de errores ortográficos simplificado que:
+- Identifica patrones sospechosos en las palabras
+- Filtra palabras comunes para reducir falsos positivos
+- Es más compatible con el entorno serverless de Netlify
+- Proporciona sugerencias básicas sin dependencias externas complejas
 
 ## 🤝 Contribuir
 

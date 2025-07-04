@@ -2,9 +2,23 @@
 import { Buffer } from 'buffer';
 import * as cheerio from 'cheerio';
 import fetch from 'node-fetch';
-import nspell from 'nspell';
 
 console.log("🟢 Function analyze-html loaded");
+
+// Basic English words list for spell checking (simplified approach)
+const commonWords = new Set([
+	'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i', 'it', 'for', 'not', 'on', 'with', 'as', 'you', 'do', 'at', 'this',
+	'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her', 'she', 'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their',
+	'what', 'so', 'up', 'out', 'if', 'about', 'who', 'get', 'which', 'go', 'me', 'when', 'make', 'can', 'like', 'time', 'no', 'just',
+	'him', 'know', 'take', 'people', 'into', 'year', 'your', 'good', 'some', 'could', 'them', 'see', 'other', 'than', 'then', 'now',
+	'look', 'only', 'come', 'its', 'over', 'think', 'also', 'back', 'after', 'use', 'two', 'how', 'our', 'work', 'first', 'well',
+	'way', 'even', 'new', 'want', 'because', 'any', 'these', 'give', 'day', 'most', 'us', 'is', 'was', 'are', 'been', 'has', 'had',
+	'were', 'said', 'each', 'which', 'their', 'time', 'will', 'about', 'if', 'up', 'out', 'many', 'then', 'them', 'these', 'so',
+	'some', 'her', 'would', 'make', 'like', 'into', 'him', 'has', 'two', 'more', 'very', 'what', 'know', 'just', 'first', 'get',
+	'over', 'think', 'also', 'your', 'work', 'life', 'only', 'can', 'still', 'should', 'after', 'being', 'now', 'made', 'before',
+	'here', 'through', 'when', 'where', 'much', 'go', 'me', 'back', 'with', 'well', 'were', 'been', 'have', 'there', 'who', 'oil',
+	'its', 'sit', 'but', 'not'
+]);
 
 // Utilities
 function decodeHTMLEntity(str) {
@@ -37,6 +51,36 @@ async function checkLink(url) {
 	} catch {
 		return false;
 	}
+}
+
+function isLikelyMisspelled(word) {
+	// Simple spell checking logic
+	const lowercaseWord = word.toLowerCase();
+	
+	// Skip if it's a common word
+	if (commonWords.has(lowercaseWord)) return false;
+	
+	// Skip very short words
+	if (word.length < 3) return false;
+	
+	// Skip if it looks like a proper noun (starts with capital)
+	if (/^[A-Z]/.test(word)) return false;
+	
+	// Skip if it contains numbers
+	if (/\d/.test(word)) return false;
+	
+	// Skip if it's all caps (likely acronym)
+	if (word === word.toUpperCase()) return false;
+	
+	// Basic patterns that suggest misspelling
+	const suspiciousPatterns = [
+		/(.)\1{2,}/, // Triple letters (e.g., "thhhe")
+		/[aeiou]{4,}/, // Too many vowels in a row
+		/[bcdfghjklmnpqrstvwxyz]{5,}/, // Too many consonants in a row
+		/^.{15,}$/, // Very long words are often typos
+	];
+	
+	return suspiciousPatterns.some(pattern => pattern.test(lowercaseWord));
 }
 
 async function analyzeHTML(htmlContent) {
@@ -143,30 +187,36 @@ async function analyzeHTML(htmlContent) {
 		}
 	});
 
-	// Spelling (simplified for serverless)
+	// Simplified spelling check
 	let spellingErrorsArray = [];
 	let spellingErrorsWithContext = [];
 	
 	try {
-		console.log("🔵 Loading dictionary...");
-		const imported = await import("dictionary-en");
-		const dictData = imported.default;
-		if (dictData && dictData.aff && dictData.dic) {
-			const spell = nspell(dictData);
-			const allText = $("body").text();
-			const words = allText.toLowerCase().match(/\b[a-z]{2,}\b/gi) || [];
-			spellingErrorsArray = Array.from(new Set(words.filter((word) => !spell.correct(word)))).slice(0, 20);
+		console.log("🔵 Running simplified spell check...");
+		const allText = $("body").text();
+		const words = allText.match(/\b[a-zA-Z]{3,}\b/g) || [];
+		const uniqueWords = Array.from(new Set(words));
+		
+		spellingErrorsArray = uniqueWords
+			.filter(word => isLikelyMisspelled(word))
+			.slice(0, 10); // Limit to 10 potential misspellings
+		
+		spellingErrorsWithContext = spellingErrorsArray.map((word) => {
+			// Find context for the word
+			const wordIndex = allText.indexOf(word);
+			const start = Math.max(0, wordIndex - 20);
+			const end = Math.min(allText.length, wordIndex + word.length + 20);
+			const context = allText.substring(start, end).trim();
 			
-			spellingErrorsWithContext = spellingErrorsArray.map((word) => {
-				return {
-					word,
-					context: `Context for ${word}`,
-				};
-			});
-		}
-		console.log(`🔵 Spelling errors: ${spellingErrorsArray.length}`);
+			return {
+				word,
+				context: context || `Context for ${word}`,
+			};
+		});
+		
+		console.log(`🔵 Potential spelling errors: ${spellingErrorsArray.length}`);
 	} catch (error) {
-		console.warn("🟡 Could not load dictionary:", error.message);
+		console.warn("🟡 Could not perform spell check:", error.message);
 	}
 
 	// Repeated words
@@ -232,8 +282,6 @@ export async function handler(event, context) {
 	console.log("🟢 ===== FUNCTION INVOKED =====");
 	console.log("🟢 Method:", event.httpMethod);
 	console.log("🟢 Path:", event.path);
-	console.log("🟢 Headers:", JSON.stringify(event.headers, null, 2));
-	console.log("🟢 Query params:", JSON.stringify(event.queryStringParameters, null, 2));
 
 	// Enable CORS
 	const headers = {
@@ -264,20 +312,11 @@ export async function handler(event, context) {
 
 	try {
 		console.log("🔵 Processing request body...");
-		console.log("🔵 Body exists:", !!event.body);
-		console.log("🔵 Is base64 encoded:", event.isBase64Encoded);
-		
 		const body = event.isBase64Encoded 
 			? Buffer.from(event.body, 'base64').toString() 
 			: event.body;
 
-		console.log("🔵 Body length:", body ? body.length : 0);
-		console.log("🔵 Body preview:", body ? body.substring(0, 200) + "..." : "null");
-
 		const { htmlContent } = JSON.parse(body);
-		
-		console.log("🔵 HTML content exists:", !!htmlContent);
-		console.log("🔵 HTML content length:", htmlContent ? htmlContent.length : 0);
 		
 		if (!htmlContent) {
 			console.log("🔴 No HTML content provided");
@@ -292,7 +331,6 @@ export async function handler(event, context) {
 		const analysis = await analyzeHTML(htmlContent);
 
 		console.log("🟢 Analysis successful, sending response");
-		console.log("🟢 Response data keys:", Object.keys(analysis));
 		
 		return {
 			statusCode: 200,
@@ -306,9 +344,6 @@ export async function handler(event, context) {
 
 	} catch (error) {
 		console.error('🔴 Error in analysis:', error);
-		console.error('🔴 Error name:', error.name);
-		console.error('🔴 Error message:', error.message);
-		console.error('🔴 Error stack:', error.stack);
 		
 		return {
 			statusCode: 500,
