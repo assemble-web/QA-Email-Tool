@@ -47,29 +47,64 @@ export default function CompareForm() {
     setLoading(true);
 
     try {
+      console.log("🔵 Starting analysis process...");
+      console.log("🔵 API_BASE:", API_BASE);
+      console.log("🔵 import.meta.env.PROD:", import.meta.env.PROD);
+      
       // Leer el archivo HTML como texto
       const htmlContent = await readFileAsText(htmlFile);
+      console.log("🔵 HTML content length:", htmlContent.length);
+      console.log("🔵 HTML preview:", htmlContent.substring(0, 100) + "...");
+
+      const url = `${API_BASE}/analyze-html`;
+      console.log("🔵 Request URL:", url);
+      
+      const requestBody = JSON.stringify({ htmlContent });
+      console.log("🔵 Request body length:", requestBody.length);
+
+      console.log("🔵 Making fetch request...");
 
       // Enviar el contenido como JSON a la función serverless
-      const res = await fetch(`${API_BASE}/analyze-html`, {
+      const res = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ htmlContent }),
+        body: requestBody,
       });
 
+      console.log("🔵 Response status:", res.status);
+      console.log("🔵 Response OK:", res.ok);
+      console.log("🔵 Response headers:", [...res.headers.entries()]);
+
       if (!res.ok) {
-        const errorData = await res.json();
-        setError(errorData.error || "Error desconocido al analizar");
+        console.log("🔴 Response not OK, trying to parse error...");
+        let errorText;
+        try {
+          const errorData = await res.json();
+          errorText = errorData.error || "Error desconocido al analizar";
+          console.log("🔴 Error data:", errorData);
+        } catch (parseError) {
+          console.log("🔴 Could not parse error response as JSON");
+          errorText = await res.text();
+          console.log("🔴 Error text:", errorText);
+        }
+        setError(errorText);
         setLoading(false);
         return;
       }
 
+      console.log("🔵 Parsing successful response...");
       const data = await res.json();
+      console.log("🔵 Response data:", data);
       setAnalysisResult(data);
+      console.log("🔵 Analysis completed successfully!");
+      
     } catch (err) {
-      console.error("Error:", err);
+      console.error("🔴 Fetch error:", err);
+      console.error("🔴 Error name:", err.name);
+      console.error("🔴 Error message:", err.message);
+      console.error("🔴 Error stack:", err.stack);
       setError("Error en la comunicación con el servidor: " + err.message);
     } finally {
       setLoading(false);

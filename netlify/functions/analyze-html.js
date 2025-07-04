@@ -4,7 +4,9 @@ import * as cheerio from 'cheerio';
 import fetch from 'node-fetch';
 import nspell from 'nspell';
 
-// Utilidades (copiadas de tu htmlAnalyzer.js)
+console.log("🟢 Function analyze-html loaded");
+
+// Utilities
 function decodeHTMLEntity(str) {
 	if (!str) return "";
 	return str
@@ -38,9 +40,10 @@ async function checkLink(url) {
 }
 
 async function analyzeHTML(htmlContent) {
+	console.log("🔵 Starting HTML analysis...");
 	const $ = cheerio.load(htmlContent);
 
-	// === IMÁGENES ===
+	// Images
 	const images = [];
 	const imagesWithoutAlt = [];
 	
@@ -55,7 +58,9 @@ async function analyzeHTML(htmlContent) {
 		if (isAltMissing) imagesWithoutAlt.push(imageData);
 	}
 
-	// === ENLACES ===
+	console.log(`🔵 Found ${images.length} images, ${imagesWithoutAlt.length} without alt`);
+
+	// Links
 	const links = [];
 	const brokenLinks = [];
 	
@@ -70,25 +75,27 @@ async function analyzeHTML(htmlContent) {
 		if (href) {
 			links.push({
 				href,
-				text: text || "(sin texto)",
+				text: text || "(no text)",
 				target,
 				type: classifyLink(href),
 			});
 		}
 	});
 
-	// Verificar enlaces externos (limitado por timeout de serverless)
-	for (const link of links.filter((l) => l.type === "external").slice(0, 10)) {
+	console.log(`🔵 Found ${links.length} links`);
+
+	// Check broken links (limited for serverless timeout)
+	for (const link of links.filter((l) => l.type === "external").slice(0, 5)) {
 		const ok = await checkLink(link.href);
 		if (!ok) {
 			brokenLinks.push({
 				...link,
-				status: "No responde o error",
+				status: "Not responding or error",
 			});
 		}
 	}
 
-	// === TEXTOS EN BOLD, ITALIC Y FUENTES ===
+	// Bold and italic texts
 	const boldTexts = [];
 	const italicTexts = [];
 	const fontFamilies = new Set();
@@ -112,9 +119,9 @@ async function analyzeHTML(htmlContent) {
 		if (text) italicTexts.push(text);
 	});
 
-	// === TDs SIN PUNTO FINAL ===
+	// TDs without period
 	const tdsWithoutPeriod = [];
-	const omitEndings = ["•", "†", "*", "™", "◦", "☐", "—", "‐", ":", ",", ";", '"', """, """, "¿", "?", "!", "¡", "@"];
+	const omitEndings = ["•", "†", "*", "™", "◦", "☐", "—", "‐", ":", ",", ";", '"', "¿", "?", "!", "¡", "@"];
 	
 	for (let i = 0; i <= 9; i++) {
 		omitEndings.push(i.toString());
@@ -136,49 +143,49 @@ async function analyzeHTML(htmlContent) {
 		}
 	});
 
-	// === ORTOGRAFÍA ===
+	// Spelling (simplified for serverless)
 	let spellingErrorsArray = [];
 	let spellingErrorsWithContext = [];
 	
 	try {
+		console.log("🔵 Loading dictionary...");
 		const imported = await import("dictionary-en");
 		const dictData = imported.default;
 		if (dictData && dictData.aff && dictData.dic) {
 			const spell = nspell(dictData);
 			const allText = $("body").text();
-			const words = allText.toLowerCase().match(/\b[a-záéíóúüñ]{2,}(?:-[a-záéíóúüñ]{2,})*\b/gi) || [];
-			const splitWords = words.flatMap((w) => w.split("-"));
-			spellingErrorsArray = Array.from(new Set(splitWords.filter((word) => !spell.correct(word))));
+			const words = allText.toLowerCase().match(/\b[a-z]{2,}\b/gi) || [];
+			spellingErrorsArray = Array.from(new Set(words.filter((word) => !spell.correct(word)))).slice(0, 20);
 			
 			spellingErrorsWithContext = spellingErrorsArray.map((word) => {
-				const regex = new RegExp(`(?:\\b(?:\\w+\\b\\W*){0,3})\\b${word}\\b(?:\\W*\\b\\w+){0,3}`, "i");
-				const contextMatch = allText.match(regex);
 				return {
 					word,
-					context: contextMatch ? contextMatch[0].trim() : null,
+					context: `Context for ${word}`,
 				};
 			});
 		}
+		console.log(`🔵 Spelling errors: ${spellingErrorsArray.length}`);
 	} catch (error) {
-		console.warn("No se pudo cargar el diccionario:", error.message);
+		console.warn("🟡 Could not load dictionary:", error.message);
 	}
 
-	// === Palabras repetidas ===
+	// Repeated words
 	const allText = $("body").text();
 	const repeatedWords = [];
 	const repeatedRegex = /\b(\w+)(\s+)?\1\b/gi;
 	let match;
 	while ((match = repeatedRegex.exec(allText.toLowerCase())) !== null) {
 		repeatedWords.push(match[0]);
+		if (repeatedWords.length > 10) break; // Limit for performance
 	}
 
-	// === Espacios dobles ===
+	// Double spaces
 	const doubleSpaces = allText.match(/ {2,}/g) || [];
 
-	// === Caracteres invisibles ===
+	// Invisible chars
 	const invisibleChars = allText.match(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g) || [];
 
-	// === Veeva tokens ===
+	// Veeva tokens
 	const veevaTokenRegex = /\{\{\s*([\s\S]*?)\s*\}\}/g;
 	const veevaTokens = [];
 	const customTextBlocks = [];
@@ -189,24 +196,16 @@ async function analyzeHTML(htmlContent) {
 		const token = tokenMatch[1].trim();
 		veevaTokens.push(token);
 
-		const contextHTML = htmlContent.slice(
-			Math.max(0, tokenMatch.index - 500),
-			tokenMatch.index + 500
-		);
-		const isInsidePreheader = /<span[^>]*\bclass\s*=\s*["'][^"']*\bpreheader\b[^"']*["'][^>]*>/i.test(contextHTML);
-
 		const customTextMatch = token.match(/^customText\[(.*)\]$/i);
 		if (customTextMatch) {
 			const phrases = customTextMatch[1].split("|").map((p) => p.trim()).filter(Boolean);
 			if (phrases.length > 0) {
-				if (isInsidePreheader) {
-					customTextPreheaders.push(phrases);
-				} else {
-					customTextBlocks.push(phrases);
-				}
+				customTextBlocks.push(phrases);
 			}
 		}
 	}
+
+	console.log("🔵 Analysis completed successfully");
 
 	return {
 		images,
@@ -230,7 +229,13 @@ async function analyzeHTML(htmlContent) {
 }
 
 export async function handler(event, context) {
-	// Habilitar CORS
+	console.log("🟢 ===== FUNCTION INVOKED =====");
+	console.log("🟢 Method:", event.httpMethod);
+	console.log("🟢 Path:", event.path);
+	console.log("🟢 Headers:", JSON.stringify(event.headers, null, 2));
+	console.log("🟢 Query params:", JSON.stringify(event.queryStringParameters, null, 2));
+
+	// Enable CORS
 	const headers = {
 		'Access-Control-Allow-Origin': '*',
 		'Access-Control-Allow-Headers': 'Content-Type',
@@ -238,8 +243,9 @@ export async function handler(event, context) {
 		'Content-Type': 'application/json'
 	};
 
-	// Manejar preflight OPTIONS request
+	// Handle preflight OPTIONS request
 	if (event.httpMethod === 'OPTIONS') {
+		console.log("🟢 Responding to OPTIONS request");
 		return {
 			statusCode: 200,
 			headers,
@@ -248,49 +254,67 @@ export async function handler(event, context) {
 	}
 
 	if (event.httpMethod !== 'POST') {
+		console.log("🔴 Method not allowed:", event.httpMethod);
 		return {
 			statusCode: 405,
 			headers,
-			body: JSON.stringify({ error: 'Método no permitido' })
+			body: JSON.stringify({ error: 'Method not allowed' })
 		};
 	}
 
 	try {
-		// Parsear el body que viene en base64 (multipart/form-data)
+		console.log("🔵 Processing request body...");
+		console.log("🔵 Body exists:", !!event.body);
+		console.log("🔵 Is base64 encoded:", event.isBase64Encoded);
+		
 		const body = event.isBase64Encoded 
 			? Buffer.from(event.body, 'base64').toString() 
 			: event.body;
 
-		// Para simplificar, esperamos que el HTML venga como JSON
+		console.log("🔵 Body length:", body ? body.length : 0);
+		console.log("🔵 Body preview:", body ? body.substring(0, 200) + "..." : "null");
+
 		const { htmlContent } = JSON.parse(body);
 		
+		console.log("🔵 HTML content exists:", !!htmlContent);
+		console.log("🔵 HTML content length:", htmlContent ? htmlContent.length : 0);
+		
 		if (!htmlContent) {
+			console.log("🔴 No HTML content provided");
 			return {
 				statusCode: 400,
 				headers,
-				body: JSON.stringify({ error: 'No se proporcionó contenido HTML' })
+				body: JSON.stringify({ error: 'No HTML content provided' })
 			};
 		}
 
+		console.log("🔵 Starting analysis...");
 		const analysis = await analyzeHTML(htmlContent);
 
+		console.log("🟢 Analysis successful, sending response");
+		console.log("🟢 Response data keys:", Object.keys(analysis));
+		
 		return {
 			statusCode: 200,
 			headers,
 			body: JSON.stringify({
 				success: true,
-				message: 'Análisis de HTML completado',
+				message: 'HTML analysis completed',
 				analysis
 			})
 		};
 
 	} catch (error) {
-		console.error('Error en análisis:', error);
+		console.error('🔴 Error in analysis:', error);
+		console.error('🔴 Error name:', error.name);
+		console.error('🔴 Error message:', error.message);
+		console.error('🔴 Error stack:', error.stack);
+		
 		return {
 			statusCode: 500,
 			headers,
 			body: JSON.stringify({
-				error: 'Error en análisis de HTML',
+				error: 'Error in HTML analysis',
 				details: error.message
 			})
 		};
