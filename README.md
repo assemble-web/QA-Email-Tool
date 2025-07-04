@@ -1,8 +1,12 @@
 # QA Email Tool
 
-Una herramienta de Quality Assurance para emails que analiza contenido HTML en busca de errores comunes, problemas de accesibilidad y elementos que pueden afectar la entregabilidad de emails.
+Desarrollado por Victor Camayo 🇨🇴<br>
+Assemble Studio | Development Team
+
 
 ## 🚀 Características
+
+Una herramienta de Quality Assurance para emails que analiza contenido HTML en busca de errores comunes, problemas de accesibilidad y elementos que pueden afectar la entregabilidad de emails.
 
 - **Análisis de imágenes**: Detecta imágenes sin texto alternativo
 - **Verificación de enlaces**: Identifica enlaces rotos o que no responden
@@ -273,5 +277,3 @@ Si encuentras algún problema o necesitas ayuda:
 3. Contacta al equipo de desarrollo
 
 ---
-
-**Desarrollado con ❤️ para mejorar la calidad de los emails**
