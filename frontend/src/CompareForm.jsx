@@ -1,8 +1,12 @@
 import React, { useState } from "react";
 import AnalysisResult from "./AnalysisResult";
-import "./CompareForm.css"; //
+import "./CompareForm.css";
 
-const BACKEND_URL = "http://localhost:5000";
+// Para producción en Netlify, las funciones estarán en /.netlify/functions/
+// Para desarrollo local, necesitarás netlify dev
+const API_BASE = import.meta.env.PROD 
+  ? "/.netlify/functions" 
+  : "http://localhost:8888/.netlify/functions";
 
 export default function CompareForm() {
   const [htmlFile, setHtmlFile] = useState(null);
@@ -22,22 +26,37 @@ export default function CompareForm() {
     setHtmlFile(file);
   };
 
+  const readFileAsText = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = (e) => reject(e);
+      reader.readAsText(file);
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    
     if (!htmlFile) {
       setError("Por favor selecciona un archivo HTML.");
       return;
     }
 
     setLoading(true);
-    const formData = new FormData();
-    formData.append("htmlFile", htmlFile);
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/compare`, {
+      // Leer el archivo HTML como texto
+      const htmlContent = await readFileAsText(htmlFile);
+
+      // Enviar el contenido como JSON a la función serverless
+      const res = await fetch(`${API_BASE}/analyze-html`, {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ htmlContent }),
       });
 
       if (!res.ok) {
@@ -50,7 +69,8 @@ export default function CompareForm() {
       const data = await res.json();
       setAnalysisResult(data);
     } catch (err) {
-      setError("Error en la comunicación con el servidor");
+      console.error("Error:", err);
+      setError("Error en la comunicación con el servidor: " + err.message);
     } finally {
       setLoading(false);
     }
