@@ -1,11 +1,11 @@
 # netlify.toml
 [build]
   base = "frontend"
-  publish = "frontend/dist"
+  publish = "dist"
   command = "npm run build"
 
 [functions]
-  directory = "netlify/functions"
+  directory = "../netlify/functions"
   
 [[redirects]]
   from = "/api/*"
